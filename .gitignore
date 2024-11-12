@@ -1,22 +1,20 @@
-# Ignorer les fichiers et dossiers d'environnement virtuel
+# Ignorer env files
 venv/
 .env
-
-# Ignorer les fichiers de configuration de l'environnement
 __pycache__/
 *.py[cod]
 *.pyo
 
-# Ignorer les fichiers de logs et de débogage
+# Ignorer logs
 *.log
 
-# Ignorer les fichiers de configuration spécifiques à l'IDE
+# Ignorer IDE confs
 .vscode/
 .idea/
 
-# Ignorer les fichiers de sortie Jupyter Notebook
+# Ignorer Jupyter Notebook outputs files
 .ipynb_checkpoints/
 
-# Ignorer les fichiers spécifiques au système d'exploitation
+# Ignorer OS files
 .DS_Store  # macOS
 Thumbs.db  # Windows
