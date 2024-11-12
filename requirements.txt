@@ -1,0 +1,8 @@
+requests>=2.28.1
+pandas>=1.5.3
+python-dotenv>=0.21.0
+sqlalchemy>=2.0.0
+apache-airflow>=2.7.0
+jupyter>=1.0.0
+matplotlib>=3.7.1
+gitpython>=3.1.30
