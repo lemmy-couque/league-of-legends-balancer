@@ -1,85 +1,155 @@
 import requests
-import pandas as pd
 import time
+import pandas as pd
 
-# Ta clé API
-RIOT_API_KEY = "RGAPI-8900586f-0aca-453c-92a3-da2c4c4e956b"
+RIOT_API_KEY = "RGAPI-66a350e3-6a0f-4e0c-9a2d-9f779328473b"  # Remplacez par votre clé API
+CHALLENGER_URL = "https://euw1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5"
+SUMMONER_URL = "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/"
+MATCH_URL = "https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids"
+MATCH_DETAILS_URL = "https://europe.api.riotgames.com/lol/match/v5/matches/{matchId}"
 
-# URL de base pour l'API League
-LEAGUE_URL = "https://euw1.api.riotgames.com/lol/league/v4/entries/RANKED_SOLO_5x5"
-# URLs spécifiques pour les rangs Master, Grandmaster, Challenger
-HIGH_TIER_URLS = {
-    "MASTER": "https://euw1.api.riotgames.com/lol/league/v4/masterleagues/by-queue/RANKED_SOLO_5x5",
-    "GRANDMASTER": "https://euw1.api.riotgames.com/lol/league/v4/grandmasterleagues/by-queue/RANKED_SOLO_5x5",
-    "CHALLENGER": "https://euw1.api.riotgames.com/lol/league/v4/challengerleagues/by-queue/RANKED_SOLO_5x5"
-}
-
-# Headers avec la clé API
+# Headers pour inclure votre clé API
 headers = {"X-Riot-Token": RIOT_API_KEY}
 
-def get_players_by_rank(tier, division=None, page=1):
-    """Récupère les joueurs pour un rang et une division spécifiques."""
-    params = {"page": page}
-    url = f"{LEAGUE_URL}/{tier}/{division}" if division else f"{HIGH_TIER_URLS.get(tier)}"
-    response = requests.get(url, headers=headers, params=params)
-    
-    if response.status_code == 200:
-        return response.json()
-    elif response.status_code == 429:
-        print("Rate limit exceeded. Sleeping for 15 seconds...")
-        time.sleep(15)  # Attend 15 secondes avant de réessayer
-        return get_players_by_rank(tier, division, page)  # Requête récursive après la pause
-    else:
-        print(f"Erreur {response.status_code}: {response.text}")
+# Parameters to fill before requesting match API
+params = {
+    "startTime": int(time.time()) - (7 * 24 * 60 * 60),  # 7 jours d'historique
+    "endTime": int(time.time()),
+    "queue": 420,  # Ranked Solo/Duo
+    "start": 0,
+    "count": 100,
+}
+
+
+def get_challenger_summoners():
+    """Récupère la liste des summonerId des joueurs Challenger."""
+    try:
+        response = requests.get(CHALLENGER_URL, headers=headers, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        return [entry['summonerId'] for entry in data['entries']]
+    except requests.exceptions.RequestException as e:
+        print(f"Erreur lors de la récupération des Challenger summoners : {e}")
         return []
 
-def fetch_all_players_above_gold():
-    """Récupère tous les joueurs dans les rangs Platinum et supérieurs, y compris les joueurs Master, Grandmaster, Challenger."""
-    tiers = ["PLATINUM", "DIAMOND", "MASTER", "GRANDMASTER", "CHALLENGER"]
-    divisions = ["I", "II", "III", "IV"]
-    all_players = []
 
-    # Récupère les joueurs Master, Grandmaster, Challenger séparément
-    for tier in ["MASTER", "GRANDMASTER", "CHALLENGER"]:
-        players = get_players_by_rank(tier)
-        all_players.extend(players)
+def get_puuid(summoner_id):
+    """Convertit un summonerId en puuid."""
+    try:
+        response = requests.get(f"{SUMMONER_URL}{summoner_id}", headers=headers, timeout=10)
+        if response.status_code == 200:
+            return response.json()['puuid']
+        elif response.status_code == 429:
+            print("Rate limit exceeded. Retrying after 15 seconds...")
+            time.sleep(15)
+            return get_puuid(summoner_id)
+        else:
+            print(f"Erreur {response.status_code} : {response.text}")
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"Erreur réseau lors de la conversion du summonerId : {e}")
+        return None
 
-    # Récupère les joueurs Platinum et Diamond avec pagination
-    for tier in ["PLATINUM", "DIAMOND"]:
-        for division in divisions:
-            page = 1
-            while True:
-                players = get_players_by_rank(tier, division, page)
-                if not players:
-                    break
-                all_players.extend(players)
-                page += 1
 
-    return all_players
+def get_all_challenger_puuids():
+    summoner_ids = get_challenger_summoners()
+    puuids = []
+    for i, summoner_id in enumerate(summoner_ids):
+        if i > 0 and i % 20 == 0:  # Pause toutes les 20 requêtes
+            time.sleep(1)
+        puuid = get_puuid(summoner_id)
+        if puuid:
+            puuids.append(puuid)
+    print(f"Nombre total de PUUIDs récupérés : {len(puuids)}")
+    return puuids
 
-def save_players_to_parquet(players):
-    """Sauvegarde les joueurs dans un fichier Parquet."""
-    # Créer une liste de dictionnaires avec les données des joueurs
-    player_data = []
-    for player in players:
-        player_data.append({
-            'summoner_name': player.get('summonerName', 'Nom non disponible'),
-            'tier': player.get('tier', 'Rang inconnu'),
-            'rank': player.get('rank', 'Classement inconnu'),
-            'league_points': player.get('leaguePoints', 0)
-        })
-    
-    # Convertir la liste de dictionnaires en DataFrame pandas
-    df = pd.DataFrame(player_data)
-    
-    # Sauvegarder le DataFrame dans un fichier Parquet
-    df.to_parquet('players.parquet', engine='pyarrow', index=False)
-    print("Données des joueurs enregistrées dans 'players.parquet'.")
 
-if __name__ == "__main__":
-    players_above_gold = fetch_all_players_above_gold()
-    print(f"Nombre de joueurs récupérés : {len(players_above_gold)}")
+def get_matches(puuid):
+    """Get every match ID related to a given puuid."""
+    url = MATCH_URL.format(puuid=puuid)
+    try:
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+        if response.status_code == 200:
+            return response.json()
+        elif response.status_code == 429:
+            print("Rate limit exceeded. Retrying after 15 seconds...")
+            time.sleep(15)
+            return get_matches(puuid)
+        else:
+            print(f"Erreur {response.status_code}: {response.text}")
+            return []
+    except requests.exceptions.RequestException as e:
+        print(f"Erreur réseau lors de la récupération des matchs pour {puuid} : {e}")
+        return []
 
-    # Sauvegarde les joueurs dans le fichier Parquet
-    save_players_to_parquet(players_above_gold)
 
+def get_all_challenger_matches(puuids):
+    matches = []
+    for i, puuid in enumerate(puuids):
+        if i > 0 and i % 10 == 0:  # Pause toutes les 10 requêtes
+            time.sleep(2)
+        match_ids = get_matches(puuid)
+        matches.extend(match_ids)
+    print(f"Nombre total de matchs uniques récupérés : {len(set(matches))}")
+    return list(set(matches))
+
+
+def get_match_details(match_id):
+    """Récupère les détails d'un match via son matchId."""
+    url = MATCH_DETAILS_URL.format(matchId=match_id)
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        if response.status_code == 200:
+            return response.json()
+        elif response.status_code == 429:
+            print("Rate limit exceeded. Retrying after 15 seconds...")
+            time.sleep(15)
+            return get_match_details(match_id)
+        else:
+            print(f"Erreur {response.status_code}: {response.text}")
+            return None
+    except requests.exceptions.RequestException as e:
+        print(f"Erreur réseau lors de la récupération des détails du match {match_id} : {e}")
+        return None
+
+
+def get_all_match_details(match_ids):
+    """Récupère les détails pour une liste de match IDs."""
+    matches_data = []
+    for i, match_id in enumerate(match_ids):
+        if i > 0 and i % 5 == 0:  # Pause toutes les 5 requêtes
+            time.sleep(1)
+        match_data = get_match_details(match_id)
+        if match_data:
+            matches_data.append(match_data)
+    print(f"Nombre total de détails de matchs récupérés : {len(matches_data)}")
+    return matches_data
+
+
+def save_matches_to_dataframe(matches_data):
+    """Convertit les données de matchs en DataFrame."""
+    rows = []
+    for match in matches_data:
+        match_id = match.get('metadata', {}).get('matchId', None)
+        game_start = match.get('info', {}).get('gameStartTimestamp', None)
+        game_duration = match.get('info', {}).get('gameDuration', None)
+        participants = match.get('info', {}).get('participants', [])
+        
+        for participant in participants:
+            rows.append({
+                "match_id": match_id,
+                "summoner_name": participant.get('summonerName', None),
+                "champion_id": participant.get('championId', None),
+                "win": participant.get('win', None),
+            })
+    return pd.DataFrame(rows)
+
+
+# Étapes principales
+challenger_puuids = get_all_challenger_puuids()
+challenger_matches = get_all_challenger_matches(challenger_puuids)
+all_match_details = get_all_match_details(challenger_matches)
+
+matches_df = save_matches_to_dataframe(all_match_details)
+matches_df.to_csv("challenger_matches.csv", index=False)
+print("Données des matchs sauvegardées dans 'challenger_matches.csv'")
