@@ -68,8 +68,8 @@ def get_puuid(summoner_id):
 def get_all_puuids():
     challenger_summoners = get_summoners(CHALLENGER_URL)
     # master_summoners = get_summoners(MASTER_URL)
-    grandmaster_summoners = get_summoners(GRANDMASTER_URL)
-    summoner_ids = challenger_summoners + grandmaster_summoners # + master_summoners
+    # grandmaster_summoners = get_summoners(GRANDMASTER_URL)
+    summoner_ids = challenger_summoners # + grandmaster_summoners + master_summoners
     puuids = []
     for i, summoner_id in enumerate(summoner_ids):
         if i > 0 and i % 20 == 0:  # Pause toutes les 20 requêtes
@@ -143,21 +143,6 @@ def get_all_match_details(match_ids):
     return matches_data
 
 
-def get_champion_mastery(summoner_id, champion_id):
-    """Récupère le score de maîtrise d'un joueur pour un champion donné."""
-    try:
-        response = requests.get(MASTERY_URL.format(summonerId=summoner_id), headers=headers, timeout=10)
-        response.raise_for_status()
-        masteries = response.json()
-        for mastery in masteries:
-            if mastery["championId"] == champion_id:
-                return mastery["championPoints"]
-        return 0  # Si le joueur n'a pas de maîtrise sur ce champion
-    except requests.exceptions.RequestException as e:
-        print(f"Erreur réseau lors de la récupération de la maîtrise pour {summoner_id} : {e}")
-        return None
-
-
 def save_matches_to_dataframe(matches_data):
     rows = []
     for match in matches_data:
@@ -172,16 +157,13 @@ def save_matches_to_dataframe(matches_data):
         for participant in participants:
             summoner_id = participant.get('summonerId', None)
             champion_id = participant.get('championId', None)
-            
-            mastery_score = get_champion_mastery(summoner_id, champion_id) if summoner_id else 0
-            
+                        
             rows.append({
                 "match_id": match_id,
                 "summoner_name": participant.get('summonerName', None),
                 "champion_id": champion_id,
                 "role": participant.get('teamPosition', None),
                 "win": participant.get('win', None),
-                "mastery_score": mastery_score,  # Ajout du score de maîtrise
                 "bans_team_1": bans_team_1,  # Bans équipe 1
                 "bans_team_2": bans_team_2,  # Bans équipe 2
             })
