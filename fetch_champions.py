@@ -32,51 +32,50 @@ def fetch_champion_mapping():
 
 
 # Étape 2 : Récupérer les bans pour une équipe
-def get_bans_for_team(match_id, team):
-    """
-    Récupère les champions bannis pour une équipe dans un match donné.
+# def get_bans_for_team(match_id, team):
+#     """
+#     Récupère les champions bannis pour une équipe dans un match donné.
 
-    Parameters:
-    - match_id (str): ID du match
-    - team (int): Numéro de l'équipe (1 ou 2)
+#     Parameters:
+#     - match_id (str): ID du match
+#     - team (int): Numéro de l'équipe (1 ou 2)
 
-    Returns:
-    - list: Liste des IDs des champions bannis
-    """
-    try:
-        while True:  # Boucle pour réessayer en cas de limite atteinte
-            response = requests.get(
-                MATCH_DETAILS_URL.format(matchId=match_id),
-                headers={"X-Riot-Token": RIOT_API_KEY},
-                timeout=10
-            )
+#     Returns:
+#     - list: Liste des IDs des champions bannis
+#     """
+#     try:
+#         while True:  # Boucle pour réessayer en cas de limite atteinte
+#             response = requests.get(
+#                 MATCH_DETAILS_URL.format(matchId=match_id),
+#                 headers={"X-Riot-Token": RIOT_API_KEY},
+#                 timeout=10
+#             )
             
-            if response.status_code == 200:
-                match_data = response.json()
-                teams = match_data.get("info", {}).get("teams", [])
-                if team == 1:
-                    bans = teams[0].get("bans", [])
-                elif team == 2:
-                    bans = teams[1].get("bans", [])
-                else:
-                    print(f"Numéro d'équipe invalide : {team}")
-                    return []
-                return [ban["championId"] for ban in bans]
+#             if response.status_code == 200:
+#                 match_data = response.json()
+#                 teams = match_data.get("info", {}).get("teams", [])
+#                 if team == 1:
+#                     bans = teams[0].get("bans", [])
+#                 elif team == 2:
+#                     bans = teams[1].get("bans", [])
+#                 else:
+#                     print(f"Numéro d'équipe invalide : {team}")
+#                     return []
+#                 return [ban["championId"] for ban in bans]
 
-            elif response.status_code == 429:
-                retry_after = int(response.headers.get("Retry-After", 15))
-                print(f"Rate limit exceeded. Retrying after {retry_after} seconds...")
-                time.sleep(retry_after)
-            else:
-                print(f"Erreur {response.status_code}: {response.text}")
-                return []
+#             elif response.status_code == 429:
+#                 print("Rate limit exceeded. Retrying after 15 seconds...")
+#                 time.sleep(15)
+#             else:
+#                 print(f"Erreur {response.status_code}: {response.text}")
+#                 return []
 
-    except requests.exceptions.RequestException as e:
-        print(f"Erreur lors de la récupération des bans pour le match {match_id} : {e}")
-        return []
-    except (IndexError, KeyError) as e:
-        print(f"Erreur dans les données pour le match {match_id} : {e}")
-        return []
+#     except requests.exceptions.RequestException as e:
+#         print(f"Erreur lors de la récupération des bans pour le match {match_id} : {e}")
+#         return []
+#     except (IndexError, KeyError) as e:
+#         print(f"Erreur dans les données pour le match {match_id} : {e}")
+#         return []
 
 
 # Étape 3 : Enrichir les données des matchs
@@ -88,17 +87,17 @@ def enrich_match_data(matches_df, champion_mapping):
     matches_df['role'] = matches_df['role'].fillna('UNKNOWN')
 
     # Ajouter les bans par équipe avec une pause pour éviter la limite
-    bans_team_1 = []
-    bans_team_2 = []
+    # bans_team_1 = []
+    # bans_team_2 = []
 
-    for i, match_id in enumerate(matches_df['match_id']):
-        if i > 0 and i % 10 == 0:  # Pause toutes les 10 requêtes
-            time.sleep(2)
-        bans_team_1.append(get_bans_for_team(match_id, team=1))
-        bans_team_2.append(get_bans_for_team(match_id, team=2))
+    # for i, match_id in enumerate(matches_df['match_id']):
+    #     if i > 0 and i % 10 == 0:  # Pause toutes les 10 requêtes
+    #         time.sleep(2)
+    #     bans_team_1.append(get_bans_for_team(match_id, team=1))
+    #     bans_team_2.append(get_bans_for_team(match_id, team=2))
 
-    matches_df['bans_team_1'] = bans_team_1
-    matches_df['bans_team_2'] = bans_team_2
+    # matches_df['bans_team_1'] = bans_team_1
+    # matches_df['bans_team_2'] = bans_team_2
 
     return matches_df
 
@@ -111,8 +110,7 @@ def calculate_win_rates(matches_df):
         matches_df.groupby(['champion_name', 'role'])
         .agg(
             total_matches=('win', 'count'),
-            wins=('win', 'sum'),
-            avg_mastery_score=('mastery_score', 'mean')
+            wins=('win', 'sum')
         )
         .reset_index()
     )
