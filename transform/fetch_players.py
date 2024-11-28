@@ -168,13 +168,3 @@ def save_matches_to_dataframe(matches_data):
                 "bans_team_2": bans_team_2,  # Bans équipe 2
             })
     return pd.DataFrame(rows)
-
-
-# Étapes principales
-summoner_puuids = get_all_puuids()
-summoner_matches = get_all_matches(summoner_puuids)
-all_match_details = get_all_match_details(summoner_matches)
-
-matches_df = save_matches_to_dataframe(all_match_details)
-matches_df.to_csv("datasets/summoner_matches.csv", index=False)
-print("Données des matchs sauvegardées dans 'summoner_matches.csv'")
