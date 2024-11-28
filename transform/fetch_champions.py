@@ -1,8 +1,6 @@
 import requests
-import pandas as pd
 import os
 from dotenv import load_dotenv
-import time
 
 # Load variables from .env
 load_dotenv()
@@ -54,23 +52,3 @@ def calculate_win_rates(matches_df):
     )
     win_rates['win_rate'] = (win_rates['wins'] / win_rates['total_matches']) * 100
     return win_rates
-
-
-# Charger les données existantes
-matches_df = pd.read_csv("datasets/summoner_matches.csv")
-
-# Obtenir le mapping champion_id -> nom
-champion_mapping = fetch_champion_mapping()
-
-# Enrichir les données des matchs
-matches_df = enrich_match_data(matches_df, champion_mapping)
-
-# Calculer les win rates
-win_rate_df = calculate_win_rates(matches_df)
-
-# Sauvegarder les résultats
-matches_df.to_csv("datasets/detailed_matches.csv", index=False)
-win_rate_df.to_csv("datasets/champion_win_rates_by_role.csv", index=False)
-
-print("Les données détaillées des matchs sont sauvegardées dans 'detailed_matches.csv'.")
-print("Les win rates des champions par rôle sont sauvegardés dans 'champion_win_rates_by_role.csv'.")
