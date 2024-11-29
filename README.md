@@ -138,7 +138,7 @@ Generated plots are saved in the reports/ folder. The plot_champion_win_rates sc
 1. Predictive Modeling:
 - Develop machine learning models to predict balance changes (buffs/nerfs).
 2. Web Dashboard:
--Create a Flask-based interface for real-time analytics and user interaction.
+- Create a Flask-based interface for real-time analytics and user interaction.
 3. Performance Optimization:
 - Implement asynchronous API calls to reduce data fetching time.
 4. Expanded Data Scope:
