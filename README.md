@@ -80,6 +80,7 @@ This project focuses on Challenger-tier data to ensure high-quality insights int
    ├── requirements.txt              # Dependencies list
    ├── .env                          # Environment variables
    └── README.md                     # Project documentation
+```
 
 ---
 
@@ -87,5 +88,66 @@ This project focuses on Challenger-tier data to ensure high-quality insights int
 
 ### 1. Fetch Data
 Run the main pipeline to collect match data, enrich it, and save CSV files:
+   ```bash
+   python main.py
+   ```
+  
+### 2. Analyze Data
+Load and analyze the generated CSV files in tools like Python, Jupyter Notebook, or Excel.
+
+### 3. Visualize Results
+Generated visualizations are stored in the reports/ directory. Open them directly or enhance them further using the provided scripts.
+
+---
+
+## Pipeline Details
+
+### Data Collection
+- **Source**: Riot Games API
+- **Endpoints Used**:
+  - **Summoner Data**: Converts summoner IDs to puuids.
+  - **Match Data**: Retrieves match IDs for the past 7 days.
+  - **Match Details**: Fetches detailed information about each match.
+- **Output**: Raw data saved to datasets/summoner_matches.csv.
+
+### Data Transformation
+- **Champion Mapping**: Maps champion IDs to their names using Data Dragon API.
+- **Data Enrichment**: Adds champion names, roles, win/loss status, and ban data to match datasets.
+- **Output**: Enriched data saved to datasets/detailed_matches.csv.
+
+### Analysis
+- **Win Rate Calculation**: Aggregates win/loss data by champion and role to calculate win rates.
+- **Output**: Saved to datasets/champion_win_rates_by_role.csv.
+
+### Visualization
+- **Goal**: Generate easy-to-read plots of win rates by champion and role.
+- **Output**: Saved to reports/.
+
+---
+
+## Visualization
+
+Here’s an example of what the win rate visualizations might look like:
+![JUNGLE_win_rates_28_11_2024](https://github.com/user-attachments/assets/46a842ad-a0c6-41d8-8d19-d5184ae6a857)
+Generated plots are saved in the reports/ folder. The plot_champion_win_rates script allows for customization of the visualization output.
+
+---
+
+## Future Work
+
+1. Predictive Modeling:
+- Develop machine learning models to predict balance changes (buffs/nerfs).
+2. Web Dashboard:
+-Create a Flask-based interface for real-time analytics and user interaction.
+3. Performance Optimization:
+- Implement asynchronous API calls to reduce data fetching time.
+4. Expanded Data Scope:
+- Include data for lower-ranked players or regional comparisons.
+
+---
+
+## Contributions
+
+Contributions are welcome! Feel free to fork the repository, create a branch, and submit a pull request for review.
 
 
