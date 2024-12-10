@@ -126,7 +126,7 @@ Generated visualizations are stored in the reports/ directory. Open them directl
 ## Visualization
 
 Here’s an example of what the win rate visualizations might look like:
-![JUNGLE_win_rates_10_12_2024](https://github.com/user-attachments/assets/46a842ad-a0c6-41d8-8d19-d5184ae6a857)
+![image](https://github.com/user-attachments/assets/ddc56651-811c-4088-a580-a5ba1025442b)
 Generated plots are saved in the reports/ folder. The plot_champion_win_rates script allows for customization of the visualization output.
 
 ---
