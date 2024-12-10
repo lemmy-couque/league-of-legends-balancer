@@ -102,7 +102,7 @@ def plot_champion_win_rates(df: pd.DataFrame) -> None:
             )
 
         # Plot titles and labels
-        plt.title(f"Win Rates of Champions by Role: {role}", fontsize=16, pad=20)
+        plt.title(f"Win Rates of Champions as {role} from {start_date} to {current_date}", fontsize=16, pad=20)
         plt.xlabel("Win Rate (%)", fontsize=14)
         plt.ylabel("Champions", fontsize=14)
         plt.gca().invert_yaxis()
@@ -114,16 +114,6 @@ def plot_champion_win_rates(df: pd.DataFrame) -> None:
 
         # Adjust layout
         plt.tight_layout()
-
-        # Add observation period annotation
-        plt.figtext(
-            0.5, -0.05, 
-            f"Data observed from {start_date} to {current_date}", 
-            wrap=True, 
-            horizontalalignment='center', 
-            fontsize=12, 
-            fontstyle='italic'
-        )
 
         # Save plot
         output_dir = "reports"

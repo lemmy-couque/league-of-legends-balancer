@@ -69,13 +69,11 @@ This project focuses on Challenger-tier data to ensure high-quality insights int
    ├── reports/                      # Generated visualizations and reports
    ├── transform/                    # Data transformation scripts
    │   ├── __init__.py
-   │   ├── fetch_champion_mapping.py
-   │   ├── enrich_match_data.py
-   │   ├── calculate_win_rates.py
-   │   ├── save_matches_to_dataframe.py
+   │   ├── fetch_champion.py
+   │   ├── fetch_players.py
    ├── analysis/                     # Data analysis and visualization scripts
    │   ├── __init__.py
-   │   ├── plot_champion_win_rates.py
+   │   ├── meta_analysis.py
    ├── main.py                       # Main entry point for the project
    ├── requirements.txt              # Dependencies list
    ├── .env                          # Environment variables
