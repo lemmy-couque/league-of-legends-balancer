@@ -133,13 +133,17 @@ Generated plots are saved in the reports/ folder. The plot_champion_win_rates sc
 
 ## Future Work
 
-1. Predictive Modeling:
+1. ***Predictive Modeling***:
+
    Develop machine learning models to predict balance changes (buffs/nerfs).
-3. Web Dashboard:
+2. ***Web Dashboard***:
+
    Create a Flask-based interface for real-time analytics and user interaction.
-3. Performance Optimization:
+3. ***Performance Optimization***:
+
    Implement asynchronous API calls to reduce data fetching time.
-5. Expanded Data Scope:
+4. ***Expanded Data Scope***:
+
    Include data for lower-ranked players or regional comparisons.
 
 ---
